@@ -203,8 +203,22 @@ private:
   SDChunkMetaData m_ChunkMetadata;
   uint32_t m_CurEventID, m_CurActionID;
   D3D11Chunk m_LastChunk;
-
+  
   RDResult m_FailedReplayResult = ResultCode::APIReplayFailed;
+
+  struct OffscreenConfig
+  {
+    uint32_t m_StartDrawId;
+    uint32_t m_EndDrawId;
+    uint32_t m_StartDispatchId;
+    uint32_t m_EndDispatchId;
+
+    bool m_CaptureStarted;
+    bool m_CaptureEnded;
+  };
+  OffscreenConfig m_OffscreenConfig;
+  uint32_t m_DrawId;
+  uint32_t m_DispatchId;
 
   ActionDescription m_ParentAction;
   std::map<ResourceId, ActionDescription> m_CmdLists;
@@ -224,6 +238,8 @@ private:
 
   void AddEvent();
   void AddAction(const ActionDescription &a);
+
+  void OffscreenCapture();
 
   void RecordIndexBindStats(ID3D11Buffer *Buffer);
   void RecordVertexBindStats(UINT NumBuffers, ID3D11Buffer *const Buffers[]);

@@ -31,9 +31,34 @@
 #include "d3d11_renderstate.h"
 #include "d3d11_replay.h"
 #include "d3d11_resources.h"
+#include "os/os_specific.h"
 
 WRAPPED_POOL_INST(WrappedID3D11DeviceContext);
 WRAPPED_POOL_INST(WrappedID3D11CommandList);
+
+namespace
+{
+void TriggerOffscreenStartCapture(WrappedID3D11DeviceContext *pWarpCtx)
+{
+  DeviceOwnedWindow devWindow = {};
+  ID3D11Device *pDevice = nullptr;
+  pWarpCtx->GetDevice(&pDevice);
+  devWindow.device = pDevice;
+  RenderDoc::Inst().StartFrameCapture(devWindow);
+
+  pDevice->Release();
+}
+void TriggerOffscreenEndCapture(WrappedID3D11DeviceContext *pWarpCtx)
+{
+  DeviceOwnedWindow devWindow = {};
+  ID3D11Device *pDevice = nullptr;
+  pWarpCtx->GetDevice(&pDevice);
+  devWindow.device = pDevice;
+  RenderDoc::Inst().EndFrameCapture(devWindow);
+
+  pDevice->Release();
+}
+}    // anonymous namespace
 
 INT STDMETHODCALLTYPE WrappedID3DUserDefinedAnnotation::BeginEvent(LPCWSTR Name)
 {
@@ -170,6 +195,21 @@ WrappedID3D11DeviceContext::WrappedID3D11DeviceContext(WrappedID3D11Device *real
   m_CurEventID = 0;
   m_CurActionID = 1;
 
+  auto StartDrawId = Process::GetEnvVariable("StartDrawId");
+  auto EndDrawId = Process::GetEnvVariable("EndDrawId");
+  auto StartDispatchId = Process::GetEnvVariable("StartDispatchId");
+  auto EndDispatchId = Process::GetEnvVariable("EndDispatchId");
+
+  m_OffscreenConfig.m_StartDrawId = StartDrawId.isEmpty() ? UINT_MAX : atoi(StartDrawId.data());
+  m_OffscreenConfig.m_EndDrawId = EndDrawId.isEmpty() ? UINT_MAX : atoi(EndDrawId.data());
+  m_OffscreenConfig.m_StartDispatchId =
+      StartDispatchId.isEmpty() ? UINT_MAX : atoi(StartDispatchId.data());
+  m_OffscreenConfig.m_EndDispatchId = EndDispatchId.isEmpty() ? UINT_MAX : atoi(EndDispatchId.data());
+  m_OffscreenConfig.m_CaptureStarted = false;
+  m_OffscreenConfig.m_CaptureEnded = false;
+  m_DrawId = 0;
+  m_DispatchId = 0;
+
   m_MarkerIndentLevel = 0;
 
   m_CurrentPipelineState = new D3D11RenderState(D3D11RenderState::Empty);
@@ -216,6 +256,11 @@ WrappedID3D11DeviceContext::WrappedID3D11DeviceContext(WrappedID3D11Device *real
 
 WrappedID3D11DeviceContext::~WrappedID3D11DeviceContext()
 {
+  if(m_OffscreenConfig.m_CaptureStarted == true && m_OffscreenConfig.m_CaptureEnded == false)
+  {
+    TriggerOffscreenEndCapture(this);
+  }
+
   if(m_ContextRecord)
     m_ContextRecord->Delete(m_pDevice->GetResourceManager());
 
@@ -1169,6 +1214,27 @@ void WrappedID3D11DeviceContext::AddAction(const ActionDescription &a)
     m_ActionStack.back()->children.push_back(action);
   else
     RDCERR("Somehow lost action stack!");
+}
+
+void WrappedID3D11DeviceContext::OffscreenCapture()
+{
+  if(IsReplayMode(m_State) == false)
+  {
+    bool startOccur = m_DrawId == m_OffscreenConfig.m_StartDrawId ||
+                      m_DispatchId == m_OffscreenConfig.m_StartDispatchId;
+    bool endOccur = m_DrawId == m_OffscreenConfig.m_EndDrawId ||
+                    m_DispatchId == m_OffscreenConfig.m_EndDispatchId;
+    if(startOccur && m_OffscreenConfig.m_CaptureStarted == false)
+    {
+      TriggerOffscreenStartCapture(this);
+      m_OffscreenConfig.m_CaptureStarted = true;
+    }
+    else if(endOccur && m_OffscreenConfig.m_CaptureEnded == false)
+    {
+      TriggerOffscreenEndCapture(this);
+      m_OffscreenConfig.m_CaptureEnded = true;
+    }
+  }
 }
 
 void WrappedID3D11DeviceContext::AddEvent()

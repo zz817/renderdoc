@@ -3894,6 +3894,8 @@ void WrappedID3D11DeviceContext::DrawIndexedInstanced(UINT IndexCountPerInstance
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -3907,6 +3909,8 @@ void WrappedID3D11DeviceContext::DrawIndexedInstanced(UINT IndexCountPerInstance
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 }
 
 template <typename SerialiserType>
@@ -3968,6 +3972,8 @@ void WrappedID3D11DeviceContext::DrawInstanced(UINT VertexCountPerInstance, UINT
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -3981,6 +3987,8 @@ void WrappedID3D11DeviceContext::DrawInstanced(UINT VertexCountPerInstance, UINT
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 }
 
 template <typename SerialiserType>
@@ -4037,6 +4045,8 @@ void WrappedID3D11DeviceContext::DrawIndexed(UINT IndexCount, UINT StartIndexLoc
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -4049,6 +4059,8 @@ void WrappedID3D11DeviceContext::DrawIndexed(UINT IndexCount, UINT StartIndexLoc
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 }
 
 template <typename SerialiserType>
@@ -4101,6 +4113,8 @@ void WrappedID3D11DeviceContext::Draw(UINT VertexCount, UINT StartVertexLocation
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -4113,6 +4127,8 @@ void WrappedID3D11DeviceContext::Draw(UINT VertexCount, UINT StartVertexLocation
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 }
 
 template <typename SerialiserType>
@@ -4248,6 +4264,8 @@ void WrappedID3D11DeviceContext::DrawAuto()
 
   SERIALISE_TIME_CALL(m_pRealContext->DrawAuto());
 
+   OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -4260,6 +4278,8 @@ void WrappedID3D11DeviceContext::DrawAuto()
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 }
 
 template <typename SerialiserType>
@@ -4380,6 +4400,8 @@ void WrappedID3D11DeviceContext::DrawIndexedInstancedIndirect(ID3D11Buffer *pBuf
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -4392,6 +4414,8 @@ void WrappedID3D11DeviceContext::DrawIndexedInstancedIndirect(ID3D11Buffer *pBuf
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 
   if(pBufferForArgs && IsActiveCapturing(m_State))
     MarkResourceReferenced(GetIDForDeviceChild(pBufferForArgs), eFrameRef_Read);
@@ -4512,6 +4536,8 @@ void WrappedID3D11DeviceContext::DrawInstancedIndirect(ID3D11Buffer *pBufferForA
 
   LatchSOProperties();
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -4524,6 +4550,8 @@ void WrappedID3D11DeviceContext::DrawInstancedIndirect(ID3D11Buffer *pBufferForA
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DrawId++;
 
   if(pBufferForArgs && IsActiveCapturing(m_State))
     MarkResourceReferenced(GetIDForDeviceChild(pBufferForArgs), eFrameRef_Read);
@@ -5095,6 +5123,8 @@ void WrappedID3D11DeviceContext::Dispatch(UINT ThreadGroupCountX, UINT ThreadGro
   SERIALISE_TIME_CALL(
       m_pRealContext->Dispatch(ThreadGroupCountX, ThreadGroupCountY, ThreadGroupCountZ));
 
+  OffscreenCapture();
+
   if(IsActiveCapturing(m_State))
   {
     USE_SCRATCH_SERIALISER();
@@ -5107,6 +5137,8 @@ void WrappedID3D11DeviceContext::Dispatch(UINT ThreadGroupCountX, UINT ThreadGro
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DispatchId++;
 }
 
 template <typename SerialiserType>
@@ -5215,6 +5247,7 @@ void WrappedID3D11DeviceContext::DispatchIndirect(ID3D11Buffer *pBufferForArgs,
 
   SERIALISE_TIME_CALL(m_pRealContext->DispatchIndirect(UNWRAP(WrappedID3D11Buffer, pBufferForArgs),
                                                        AlignedByteOffsetForArgs));
+  OffscreenCapture();
 
   if(IsActiveCapturing(m_State))
   {
@@ -5228,6 +5261,8 @@ void WrappedID3D11DeviceContext::DispatchIndirect(ID3D11Buffer *pBufferForArgs,
 
     m_CurrentPipelineState->MarkReferenced(this, false);
   }
+
+  m_DispatchId++;
 
   if(pBufferForArgs && IsActiveCapturing(m_State))
     MarkResourceReferenced(GetIDForDeviceChild(pBufferForArgs), eFrameRef_Read);
