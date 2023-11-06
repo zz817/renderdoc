@@ -1718,6 +1718,7 @@ enum class GPUVendor : uint32_t
   Imagination,
   Intel,
   nVidia,
+  MooreThreads,
   Qualcomm,
   Verisilicon,
   Software,
@@ -1739,6 +1740,7 @@ constexpr GPUVendor GPUVendorFromPCIVendor(uint32_t vendorID)
          : vendorID == 0x1010 ? GPUVendor::Imagination
          : vendorID == 0x8086 ? GPUVendor::Intel
          : vendorID == 0x10DE ? GPUVendor::nVidia
+         : vendorID == 0x1ED5 ? GPUVendor::MooreThreads
          : vendorID == 0x5143 ? GPUVendor::Qualcomm
          : vendorID == 0x1AE0 ? GPUVendor::Software    // Google Swiftshader
          : vendorID == 0x1414 ? GPUVendor::Software    // Microsoft WARP
