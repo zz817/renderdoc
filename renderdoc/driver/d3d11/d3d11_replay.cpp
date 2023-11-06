@@ -4282,6 +4282,11 @@ RDResult D3D11_CreateReplayDevice(RDCFile *rdc, const ReplayOptions &opts, IRepl
 
   UINT flags = initParams.Flags;
 
+  // For whlk test, it seems use undefined flag enum
+  // Only save ms defined flag, otherwise the create device will fail
+  // The defined flag: https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag
+  flags &= 0x9ff;
+
   // we control the debug flag ourselves
   flags &= ~D3D11_CREATE_DEVICE_DEBUG;
 
