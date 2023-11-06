@@ -154,15 +154,7 @@ private:
 
     RDCDEBUG("Called real createdevice...");
 
-    bool suppress = false;
-
-    suppress = (Flags & D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY) != 0;
-
-    if(suppress)
-    {
-      RDCLOG("Application requested not to be hooked.");
-    }
-    else if(SUCCEEDED(ret) && ppDevice)
+    if(SUCCEEDED(ret) && ppDevice)
     {
       RDCDEBUG("succeeded and hooking.");
 
