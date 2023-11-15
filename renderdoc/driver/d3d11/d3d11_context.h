@@ -239,7 +239,8 @@ private:
   void AddEvent();
   void AddAction(const ActionDescription &a);
 
-  void OffscreenCapture();
+  void StartOffscreenCapture();
+  void EndOffscreenCapture();
 
   void RecordIndexBindStats(ID3D11Buffer *Buffer);
   void RecordVertexBindStats(UINT NumBuffers, ID3D11Buffer *const Buffers[]);

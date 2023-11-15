@@ -1216,25 +1216,32 @@ void WrappedID3D11DeviceContext::AddAction(const ActionDescription &a)
     RDCERR("Somehow lost action stack!");
 }
 
-void WrappedID3D11DeviceContext::OffscreenCapture()
+void WrappedID3D11DeviceContext::StartOffscreenCapture()
 {
-  if(IsReplayMode(m_State) == false)
-  {
-    bool startOccur = m_DrawId == m_OffscreenConfig.m_StartDrawId ||
-                      m_DispatchId == m_OffscreenConfig.m_StartDispatchId;
-    bool endOccur = m_DrawId == m_OffscreenConfig.m_EndDrawId ||
-                    m_DispatchId == m_OffscreenConfig.m_EndDispatchId;
-    if(startOccur && m_OffscreenConfig.m_CaptureStarted == false)
+	if (IsReplayMode(m_State) == false)
+	{
+		bool startOccur = m_DrawId == m_OffscreenConfig.m_StartDrawId ||
+			m_DispatchId == m_OffscreenConfig.m_StartDispatchId;
+		if (startOccur && m_OffscreenConfig.m_CaptureStarted == false)
+		{
+			TriggerOffscreenStartCapture(this);
+			m_OffscreenConfig.m_CaptureStarted = true;
+		}
+	}
+}
+
+void WrappedID3D11DeviceContext::EndOffscreenCapture()
+{
+    if (IsReplayMode(m_State) == false)
     {
-      TriggerOffscreenStartCapture(this);
-      m_OffscreenConfig.m_CaptureStarted = true;
+        bool endOccur = m_DrawId == m_OffscreenConfig.m_EndDrawId ||
+            m_DispatchId == m_OffscreenConfig.m_EndDispatchId;
+        if (endOccur && m_OffscreenConfig.m_CaptureEnded == false)
+        {
+            TriggerOffscreenEndCapture(this);
+            m_OffscreenConfig.m_CaptureEnded = true;
+        }
     }
-    else if(endOccur && m_OffscreenConfig.m_CaptureEnded == false)
-    {
-      TriggerOffscreenEndCapture(this);
-      m_OffscreenConfig.m_CaptureEnded = true;
-    }
-  }
 }
 
 void WrappedID3D11DeviceContext::AddEvent()
